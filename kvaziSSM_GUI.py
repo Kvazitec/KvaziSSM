@@ -1,4 +1,5 @@
 import time
+from kvazi_dts import datasearch
 from tkinter import *
 from tkinter.ttk import Combobox
 from tkinter.ttk import Separator
@@ -6,40 +7,29 @@ CalcSyst = ''
 CalcSystdoub = CalcSyst
 CalcSpeed = 365*24*3600
 file_name ='info.txt'
+start_date = '00:00:00/01/01/2000'
+end_date = ''
+now_date = ''
 ifnew = True
 Name = ''
 Radius = 0
 setupdtime = 1
+mcombo = 0
+bodies = []
 x = 0
 y = 0
 z = 0
 Vx = 0
 Vy = 0
 Vz = 0
-bodies =[]
-
-def datasearch(file_name, objectl, parameter):
-    file = open(file_name, 'r')
-    info = file.read()
-    i = info.index(objectl) + len(objectl)
-    while info[i+1: i+len(parameter)+2] != parameter+' ':
-        i = i+1
-        if info[i: i+len('object_end')] == 'object_end':
-            print(f'Параметр {parameter} объекта {objectl} не найден в файле {file_name}. Продолжение работы программы невозможно')
-            exit(1)
-    j = i+len(parameter)+2
-    while info[j] == ' ' or  info[j] == '=':
-        j = j + 1
-    k = j
-    while info[k] != '\n':
-        k = k + 1
-    return info[j:k]
 def managment():
     global CalcSyst
     global CalcSystdoub
     global CalcSpeed
     global file_name
     global ifnew
+    global mcombo
+    global bodies
     def creatmenu(row0):
         def new(loc_name, loc_radius, loc_x, loc_y, loc_z, loc_Vx, loc_Vy, loc_Vz):
             global Name
@@ -110,6 +100,11 @@ def managment():
     def setupupd(get):
         global setupdtime
         setupdtime = float(get)
+    def date_set(start, end):
+        global start_date
+        global end_date
+        start_date = start
+        end_date = end
     window = Tk()
     window.title(f"Управление моделью {datasearch(file_name, 'General', 'system_name')}")
     window.geometry('1700x500')
@@ -180,20 +175,22 @@ def managment():
                 else:
                     set_systemlbl1 = Label(window, text=CalcSyst)
                     set_systemlbl1.grid(column=4, row=1)
+                set_datlbl = Label(window, text=f"{now_date}")
+                set_datlbl.grid(column=4, row=4)
                 set_speedlbl = Label(window, text=CalcSpeed)
                 set_speedlbl.grid(column=4, row=2)
                 set_filelbl = Label(window,
                                     text=file_name)
                 set_filelbl.grid(column=4, row=3)
-                datelbl = Label(window, text=f"Дата: ")
-                datelbl.place(x=80, y=68)
+                datelbl = Label(window, text=f"Стартовая дата: ")
+                datelbl.place(x=15, y=68)
                 datelbl_txt = Entry(window, width=10)
                 datelbl_txt.place(x=130, y=68)
                 datelbl = Label(window, text=f"Дата окончания: ")
                 datelbl.place(x=225, y=68)
-                datelbl_txt = Entry(window, width=10)
-                datelbl_txt.place(x=345, y=68)
-                datebut = Button(window, text="Установить", command=lambda: speed_set(speedlbl_txt.get()))
+                dateelbl_txt = Entry(window, width=10)
+                dateelbl_txt.place(x=345, y=68)
+                datebut = Button(window, text="Установить", command=lambda: date_set(datelbl_txt.get(), dateelbl_txt.get()))
                 datebut.place(x=453, y=60)
                 for i in range(0, int(datasearch(file_name, 'General', 'NUM_BODIES'))):
                     if ifnew:
@@ -242,7 +239,8 @@ def managment():
                                 else:
                                     pos.grid(column=11, row=j + 1 + 4 * i)
                             del j
-                    values = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    values = [round(bodies[i].x/149597870700, 8), round(bodies[i].y/149597870700, 8), round(bodies[i].z/149597870700, 8), 0, 0, 0, 0, 0, 0]
+                    print(values)
                     for j in range(0, len(values)):
                         pos = Label(window, text=values[j])
                         if j < 3:
@@ -262,4 +260,7 @@ def managment():
             ).place(x=620, y=0, relheight=1)
             window.update()
             window.update_idletasks()
-managment()
+def managment_initiator(bodies_in):
+    global bodies
+    bodies = bodies_in
+    managment()

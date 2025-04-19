@@ -1,0 +1,24 @@
+General
+system_name = Солнечная система
+NUM_BODIES = 2
+GRAVITY_CONSTANT = 6.67430e-11
+Body_0
+name = Sun
+radius = 1000
+mass = 1.9885e30
+x = 0
+y = 0
+z = 0
+Vx = 0
+Vy = 0
+Vz = 0
+Body_1
+name = Earth
+radius = 1000
+mass = 5.972e24
+x = 1.471e11
+y = 0
+z = 0
+Vx = 0
+Vy = 3.029e4
+Vz = 0

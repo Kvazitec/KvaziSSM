@@ -1,32 +1,38 @@
 from kvaziSSM_GUI import *
-from numbers_integration import lasttime
-
-year = 2025
-month = 4
-day = 7
-mod = 'Static'
+import threading
+from numpy import array
+from math import sqrt
+from kvazi_dts import datasearch
+from time import time
 vis = False
-name_months = {31 : 'jan', 28 : 'feb_f', 29 : 'feb_t', 31 : 'mar', 30 : 'apr', 31 :'may', 30 : 'jun', 31 : 'jul', 31 : 'aug', 30 : 'sep', 31 : 'oct', 30 : 'nov', 31 : 'dec'}
-months = {1 : 31, 21 : 29, 20 : 28, 3 : 31, 4 : 30, 5 : 31, 6 : 30, 7 : 31, 8 : 31, 9 : 30, 10 : 31, 11 : 30, 12 : 31}
+bodies = []
+file_name = 'info.txt'
 class Body(object):
     def __init__(self, name, x, y, z, Vx, Vy, Vz, ax, ay, az, radius, mass):
         self.name = name
         self.x = x
         self.y = y
         self.z = z
-        self.Vx = x
-        self.Vy = y
-        self.Vz = z
-        self.ax = x
-        self.ay = y
-        self.az = z
+        self.Vx = Vx
+        self.Vy = Vy
+        self.Vz = Vz
+        self.ax = ax
+        self.ay = ay
+        self.az = az
         self.radius = radius
         self.mass = mass
 for i in range(int(datasearch(file_name, 'General', 'NUM_BODIES'))):
     pos = [float(datasearch(file_name,f'Body_{i}', 'x')), float(datasearch(file_name,f'Body_{i}', 'y')), float(datasearch(file_name,f'Body_{i}', 'z'))]
     vel = [float(datasearch(file_name, f'Body_{i}', 'Vx')), float(datasearch(file_name, f'Body_{i}', 'Vy')), float(datasearch(file_name, f'Body_{i}', 'Vz'))]
     bodies.append(Body(datasearch(file_name, f'Body_{i}', 'name'), pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], 0, 0, 0, datasearch(file_name, f'Body_{i}', 'radius'), float(datasearch(file_name, f'Body_{i}', 'mass'))))
-def date(date, mod, speed, datestr):
+def date():
+    global start_date
+    global mcombo
+    global CalcSpeed
+    global now_date
+    mod = mcombo.get()
+    date = '00:00:00/01/01/2000'
+    months = {1: 31, 21: 29, 20: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
     second = date[0:2]
     minute = date[4:6]
     hour = date[8:10]
@@ -34,6 +40,8 @@ def date(date, mod, speed, datestr):
     month = date[16:18]
     year = date[20:22]
     lasttime = time.time()
+    if mod == 'Расчёт координат для даты':
+        speed = 3600*24*365*5
     while True:
         if time.time() - lasttime > 1/speed:
             if year % 4 != 0:
@@ -52,12 +60,10 @@ def date(date, mod, speed, datestr):
                 if day > months[month]:
                     month = month + 1
                     day = 1
-                datestr = f'{year}/{month}/{day}'
             else:
                 if day > months[int('2' + str(int(vis)))]:
                     month = month + 1
                     day = 1
-                datestr = f'{year}/{month}/{day}'
             if hour > 24:
                 day = day + 1
             if minute > 60:
@@ -65,7 +71,42 @@ def date(date, mod, speed, datestr):
             if second > 60:
                 minute = minute + 1
             second = second + 1
-
+            now_date = f'{second}:{minute}:{hour}/{day}/{month}/{year}'
+G = float(datasearch('info.txt', 'General', 'GRAVITY_CONSTANT'))
+def num_integr(dt):
+    global bodies
+    global Body
+    for body1 in bodies:
+        sumvec = array([0.0, 0.0, 0.0])
+        for body2 in bodies:
+            if body2 != body1:
+                r = sqrt(((body1.x-body2.x)**2) + ((body1.y-body2.y)**2) + ((body1.z-body2.z)**2))
+                force_abs = G*body1.mass*body2.mass/(r**2)
+                k = force_abs/r
+                vec = k * array([(body2.x-body1.x), (body2.y-body1.y), (body2.z-body1.z)])
+                sumvec += vec
+        body1.ax = sumvec[0] / body1.mass
+        body1.ay = sumvec[1] / body1.mass
+        body1.az = sumvec[2] / body1.mass
+    for body in bodies:
+        body.x += body.Vx * dt + (body.ax * (dt ** 2) / 2)
+        body.y += body.Vy * dt + (body.ay * (dt ** 2) / 2)
+        body.z += body.Vz * dt + (body.az * (dt ** 2) / 2)
+        body.Vx += body.ax * dt
+        body.Vy += body.ay * dt
+        body.Vz += body.az * dt
+def integ_initiator():
+    lasttime = time()
+    while True:
+        if time()-lasttime > 1:
+            num_integr(3600)
+            lasttime = time()
+thrINTEGR = threading.Thread(target = integ_initiator)
+thrINTEGR.start()
+thrGUI = threading.Thread(target = managment_initiator(bodies))
+thrGUI.start()
+thrDAT = threading.Thread(target = date)
+thrDAT.start()
 """while True:
     if year % 4 != 0:
         vis = False

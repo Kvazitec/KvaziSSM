@@ -1,7 +1,7 @@
 from calculating_advanced import Body, bodies
 from math import sqrt
 from numpy import array
-from kvaziSSM_GUI import datasearch
+from kvazi_dts import datasearch
 from time import time
 G = float(datasearch('info.txt', 'General', 'GRAVITY_CONSTANT'))
 def num_integr(dt):
@@ -27,8 +27,8 @@ def num_integr(dt):
         body.Vy += body.ay * dt
         body.Vz += body.az * dt
 lasttime = time()
-while True:
+"""while True:
     if time()-lasttime > 1:
         num_integr(3600)
         print(bodies[1].x)
-        lasttime = time()
+        lasttime = time()"""
