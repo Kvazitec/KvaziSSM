@@ -3,6 +3,7 @@ from kvazi_dts import datasearch
 from tkinter import *
 from tkinter.ttk import Combobox
 from tkinter.ttk import Separator
+from threading import Thread
 CalcSyst = ''
 CalcSystdoub = CalcSyst
 CalcSpeed = 365*24*3600
@@ -16,12 +17,27 @@ Radius = 0
 setupdtime = 1
 mcombo = 0
 bodies = []
+manag_init = False
 x = 0
 y = 0
 z = 0
 Vx = 0
 Vy = 0
 Vz = 0
+class Body(object):
+    def __init__(self, name, x, y, z, Vx, Vy, Vz, ax, ay, az, radius, mass):
+        self.name = name
+        self.x = x
+        self.y = y
+        self.z = z
+        self.Vx = Vx
+        self.Vy = Vy
+        self.Vz = Vz
+        self.ax = ax
+        self.ay = ay
+        self.az = az
+        self.radius = radius
+        self.mass = mass
 def managment():
     global CalcSyst
     global CalcSystdoub
@@ -30,6 +46,7 @@ def managment():
     global ifnew
     global mcombo
     global bodies
+    print(bodies)
     def creatmenu(row0):
         def new(loc_name, loc_radius, loc_x, loc_y, loc_z, loc_Vx, loc_Vy, loc_Vz):
             global Name
@@ -240,7 +257,6 @@ def managment():
                                     pos.grid(column=11, row=j + 1 + 4 * i)
                             del j
                     values = [round(bodies[i].x/149597870700, 8), round(bodies[i].y/149597870700, 8), round(bodies[i].z/149597870700, 8), 0, 0, 0, 0, 0, 0]
-                    print(values)
                     for j in range(0, len(values)):
                         pos = Label(window, text=values[j])
                         if j < 3:
@@ -260,7 +276,10 @@ def managment():
             ).place(x=620, y=0, relheight=1)
             window.update()
             window.update_idletasks()
-def managment_initiator(bodies_in):
+manag_thread = Thread(target=managment)
+def managment_initiator(q):
     global bodies
-    bodies = bodies_in
-    managment()
+    global now_date
+    global manag_thread
+    bodies =
+

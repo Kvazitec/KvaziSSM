@@ -26,8 +26,8 @@ def num_integr(dt):
         body.Vx += body.ax * dt
         body.Vy += body.ay * dt
         body.Vz += body.az * dt
-lasttime = time()
-"""while True:
+"""lasttime = time()
+while True:
     if time()-lasttime > 1:
         num_integr(3600)
         print(bodies[1].x)

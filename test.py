@@ -1,7 +1,14 @@
-def date(date, mod, speed, datestr):
-    second = date[0:2]
-    minute = date[4:6]
-    hour = date[8:10]
-    day = date[12:14]
-    month = date[16:18]
-    year = date[20:22]
+class Body(object):
+    def __init__(self, name, x, y, z, Vx, Vy, Vz, ax, ay, az, radius, mass):
+        self.name = name
+        self.x = x
+        self.y = y
+        self.z = z
+        self.Vx = Vx
+        self.Vy = Vy
+        self.Vz = Vz
+        self.ax = ax
+        self.ay = ay
+        self.az = az
+        self.radius = radius
+        self.mass = mass
