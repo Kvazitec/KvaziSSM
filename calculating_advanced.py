@@ -27,7 +27,7 @@ for i in range(int(datasearch(file_name, 'General', 'NUM_BODIES'))):
     vel = [float(datasearch(file_name, f'Body_{i}', 'Vx')), float(datasearch(file_name, f'Body_{i}', 'Vy')), float(datasearch(file_name, f'Body_{i}', 'Vz'))]
     bodies.append(Body(datasearch(file_name, f'Body_{i}', 'name'), pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], 0, 0, 0, datasearch(file_name, f'Body_{i}', 'radius'), float(datasearch(file_name, f'Body_{i}', 'mass'))))
 G = float(datasearch('info.txt', 'General', 'GRAVITY_CONSTANT'))
-def num_integr(dt, q):
+def num_integr(dt, qbod):
     global bodies
     global Body
     for body1 in bodies:
@@ -51,4 +51,5 @@ def num_integr(dt, q):
         body.Vz += body.az * dt
     bodies_data = [(body.name, body.x, body.y, body.z, body.Vx, body.Vy, body.Vz, body.ax, body.ay, body.az, body.radius,
                    body.mass) for body in bodies]
-    q.put(("update_bodies", bodies_data))
+
+    qbod.put((bodies_data))
