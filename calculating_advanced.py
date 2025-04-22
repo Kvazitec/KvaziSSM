@@ -1,11 +1,13 @@
 from numpy import array
 from math import sqrt
 from kvazi_dts import datasearch
+start = False
 vis = False
 bodies = []
 file_name = 'info.txt'
 now_date = '00:00/01/01/2000'
 speed = 1
+ifstart = False
 class Body(object):
     def __init__(self, name, x, y, z, Vx, Vy, Vz, ax, ay, az, radius, mass):
         self.name = name
@@ -50,42 +52,3 @@ def num_integr(dt, q):
     bodies_data = [(body.name, body.x, body.y, body.z, body.Vx, body.Vy, body.Vz, body.ax, body.ay, body.az, body.radius,
                    body.mass) for body in bodies]
     q.put(("update_bodies", bodies_data))
-
-"""while True:
-    if year % 4 != 0:
-        vis = False
-    elif year % 100 == 0:
-        if year % 400 == 0:
-            vis = True
-        else:
-            vis = False
-    else:
-        vis = True
-    if month > 12:
-        year = year + 1
-        month = 1
-    if month != 2:
-        if day > months[month]:
-            month = month + 1
-            day = 1
-        datestr = f'{year}/{month}/{day}'
-    else:
-        if day > months[int('2'+str(int(vis)))]:
-            month = month + 1
-            day = 1
-        datestr = f'{year}/{month}/{day}'
-    Jup.compute(datestr, epoch='2000')
-    day = day+1
-    print(datestr)
-    print(Jup.sun_distance)
-    print(dms_deg(str(Jup.hlon)))
-    print(dms_deg(str(Jup.hlat)))
-    jup_polar_coords = SkyCoord(
-        lon=dms_deg(str(Jup.hlon))*u.deg,  # долгота (например, эклиптическая)
-        lat=dms_deg(str(Jup.hlat))*u.deg,  # широта
-        distance=float(Jup.sun_distance)*u.AU,# расстояние от Солнца
-        frame = 'heliocentrictrueecliptic'
-    )
-    print(datestr)
-    jup_cartesian_coords = jup_polar_coords.cartesian
-    print(jup_cartesian_coords.x, jup_cartesian_coords.y, jup_cartesian_coords.z)"""
