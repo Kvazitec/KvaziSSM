@@ -1,10 +1,10 @@
 General
 system_name = Солнечная система
-NUM_BODIES = 2
+NUM_BODIES = 9
 GRAVITY_CONSTANT = 6.67430e-11
 Body_0
 name = Sun
-radius = 1000
+radius = 6.9634e8
 mass = 1.9885e30
 x = 0
 y = 0
@@ -13,12 +13,89 @@ Vx = 0
 Vy = 0
 Vz = 0
 Body_1
+name = Mercury
+radius = 2.4397e6
+mass = 3.3011e23
+x = 4.603e10
+y = -5.328e10
+z = -3.908e9
+Vx = 3.886e4
+Vy = 2.976e4
+Vz = -4.271e3
+
+Body_2
+name = Venus
+radius = 6.0518e6
+mass = 4.8675e24
+x = -1.074e11
+y = -3.895e10
+z = 4.952e9
+Vx = 1.265e4
+Vy = -3.478e4
+Vz = -1.876e3
+
+Body_3
 name = Earth
-radius = 1000
-mass = 5.972e24
-x = 1.471e11
-y = 0
-z = 0
-Vx = 0
-Vy = 3.029e4
-Vz = 0
+radius = 6.371e6
+mass = 5.9724e24
+x = -2.679e10
+y = 1.413e11
+z = 1.147e8
+Vx = -2.979e4
+Vy = -5.298e3
+Vz = 1.406e0
+
+Body_4
+name = Mars
+radius = 3.3895e6
+mass = 6.4171e23
+x = -2.020e11
+y = 6.561e10
+z = 4.213e9
+Vx = -5.432e3
+Vy = -2.341e4
+Vz = -4.562e2
+
+Body_5
+name = Jupiter
+radius = 6.9911e7
+mass = 1.8982e27
+x = 7.405e11
+y = -3.372e11
+z = -1.673e10
+Vx = 5.641e3
+Vy = 1.271e4
+Vz = -2.016e2
+
+Body_6
+name = Saturn
+radius = 5.8232e7
+mass = 5.6834e26
+x = 1.352e12
+y = -5.682e11
+z = -2.316e10
+Vx = 3.429e3
+Vy = 9.672e3
+Vz = -1.543e2
+
+Body_7
+name = Uranus
+radius = 2.5362e7
+mass = 8.6813e25
+x = 2.748e12
+y = 1.397e12
+z = -2.512e10
+Vx = -2.927e3
+Vy = 5.601e3
+Vz = 7.042e1
+
+Body_8
+name = Neptune
+radius = 2.4622e7
+mass = 1.0241e26
+x = 4.456e12
+y = -3.726e11
+z = -9.983e10
+Vx = 4.385e2
+Vy = 5.462e3
+Vz = -1.291e2

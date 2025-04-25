@@ -1,6 +1,10 @@
+import time
+
 from numpy import array
 from math import sqrt
 from kvazi_dts import datasearch
+from multiprocessing import Queue
+
 start = False
 vis = False
 bodies = []
@@ -8,6 +12,8 @@ file_name = 'info.txt'
 now_date = '00:00/01/01/2000'
 speed = 1
 ifstart = False
+G = 0
+i_save = 0
 class Body(object):
     def __init__(self, name, x, y, z, Vx, Vy, Vz, ax, ay, az, radius, mass):
         self.name = name
@@ -22,14 +28,26 @@ class Body(object):
         self.az = az
         self.radius = radius
         self.mass = mass
-for i in range(int(datasearch(file_name, 'General', 'NUM_BODIES'))):
-    pos = [float(datasearch(file_name,f'Body_{i}', 'x')), float(datasearch(file_name,f'Body_{i}', 'y')), float(datasearch(file_name,f'Body_{i}', 'z'))]
-    vel = [float(datasearch(file_name, f'Body_{i}', 'Vx')), float(datasearch(file_name, f'Body_{i}', 'Vy')), float(datasearch(file_name, f'Body_{i}', 'Vz'))]
-    bodies.append(Body(datasearch(file_name, f'Body_{i}', 'name'), pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], 0, 0, 0, datasearch(file_name, f'Body_{i}', 'radius'), float(datasearch(file_name, f'Body_{i}', 'mass'))))
-G = float(datasearch('info.txt', 'General', 'GRAVITY_CONSTANT'))
-def num_integr(dt, qbod):
+def downloader():
+    global G
+    global bodies
+    global i_save
+    bodies.clear()
+    for i in range(int(datasearch(file_name, 'General', 'NUM_BODIES'))):
+        pos = [float(datasearch(file_name, f'Body_{i}', 'x')), float(datasearch(file_name, f'Body_{i}', 'y')),
+               float(datasearch(file_name, f'Body_{i}', 'z'))]
+        vel = [float(datasearch(file_name, f'Body_{i}', 'Vx')), float(datasearch(file_name, f'Body_{i}', 'Vy')),
+               float(datasearch(file_name, f'Body_{i}', 'Vz'))]
+        bodies.append(Body(datasearch(file_name, f'Body_{i}', 'name'), pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], 0, 0, 0,
+                 float(datasearch(file_name, f'Body_{i}', 'radius')), float(datasearch(file_name, f'Body_{i}', 'mass'))))
+        G = float(datasearch('info.txt', 'General', 'GRAVITY_CONSTANT'))
+        i_save = i
+downloader()
+lasttime1 = time.time()
+def num_integr(dt, qbod, qnewb, ifstart1):
     global bodies
     global Body
+    global lasttime1
     for body1 in bodies:
         sumvec = array([0.0, 0.0, 0.0])
         for body2 in bodies:
@@ -51,5 +69,7 @@ def num_integr(dt, qbod):
         body.Vz += body.az * dt
     bodies_data = [(body.name, body.x, body.y, body.z, body.Vx, body.Vy, body.Vz, body.ax, body.ay, body.az, body.radius,
                    body.mass) for body in bodies]
-
-    qbod.put((bodies_data))
+    if not ifstart1 or time.time() - lasttime1 > 0.016:
+        qbod.put(bodies_data)
+        lasttime1 = time.time()
+    #print(time.time()-lasttime1)

@@ -1,8 +1,5 @@
-import time
 import tkinter as tk
 from tkinter import ttk
-from tkinter import *
-from time import sleep
 # Глобальные переменные
 CalcSyst = 'Гелиоцентрическая декартова'
 CalcSpeed = 365 * 24 * 3600
@@ -15,24 +12,9 @@ bodies = []
 step = 3600
 ifstart = False
 mess = 1
+window = ''
 
-class Body:
-    def __init__(self, name, x, y, z, Vx, Vy, Vz, ax, ay, az, radius, mass):
-        self.name = name
-        self.x = x
-        self.y = y
-        self.z = z
-        self.Vx = Vx
-        self.Vy = Vy
-        self.Vz = Vz
-        self.ax = ax
-        self.ay = ay
-        self.az = az
-        self.radius = radius
-        self.mass = mass
-
-
-def managment(q):
+def managment(q, qnewb):
     global CalcSyst
     global CalcSpeed
     global file_name
@@ -40,14 +22,14 @@ def managment(q):
     global end_date
     global now_date
     global bodies
+    global window
 
     def starter():
         iferror = False
         global ifstart
         global mess
         mess = 1
-        ttk.Label(settings_frame, text="").grid(row=16, column=0)
-        ttk.Label(settings_frame, text="Состояние:").grid(row=17, column=0, sticky='W')
+        ttk.Label(settings_frame, text="Сообщения:").grid(row=17, column=0, sticky='W')
         q.put(("update_calcsyst", coord_combo.get()))
         if speed_entry.get():
             q.put("update_speed", float(speed_entry.get()))
@@ -59,7 +41,7 @@ def managment(q):
             q.put(("update_start_date", start_date_entry.get()))
         else:
             iferror = True
-            tk.Label(settings_frame, text='Введите стартовую дату', bg='red', fg='white').grid(row=17, column=mess, sticky='W')
+            tk.Label(settings_frame, text='Введите стартовую дату        ', bg='red', fg='white').grid(row=17, column=mess, sticky='W')
             mess += 1
         if end_date_entry.get():
             q.put(('update_end_date', end_date_entry.get()))
@@ -68,31 +50,29 @@ def managment(q):
             tk.Label(settings_frame, text='Введите дату окончания', bg='red', fg='white').grid(row=17, column=mess, sticky='W')
             mess += 1
         if not iferror:
+            tk.Label(settings_frame, text='Запущена подготовка к расчёту', bg='green', fg='white').grid(row=17, column=mess, sticky='W')
+            mess += 1
+            tk.Label(settings_frame, text='                             ').grid(row=17, column=mess, sticky='W')
+            mess += 1
             ifstart = True
-        q.put(('update_ifstart', int(ifstart)))
+        q.put(('update_ifstart', ifstart))
+    def stopper():
+        q.put(('update_ifstart', False))
     def add_body():
-        if name_entry:
-            name = name_entry.get()
-            radius = float(radius_entry.get())
-            x = float(x_entry.get())
-            y = float(y_entry.get())
-            z = float(z_entry.get())
-            Vx = float(Vx_entry.get())
-            Vy = float(Vy_entry.get())
-            Vz = float(Vz_entry.get())
-        new_body = (name, x, y, z, Vx, Vy, Vz, 0, 0, 0, radius, 0)
-        q.put(('update_bodies', new_body))
-    def set_speed():
-        global CalcSpeed
-        CalcSpeed = int(speed_entry.get())
-
-    def set_file():
-        global file_name
-        file_name = file_entry.get()
+        name = name_entry.get()
+        radius = float(radius_entry.get())
+        mass = float(mass_entry.get())
+        x = float(x_entry.get())
+        y = float(y_entry.get())
+        z = float(z_entry.get())
+        Vx = float(Vx_entry.get())
+        Vy = float(Vy_entry.get())
+        Vz = float(Vz_entry.get())
+        new_body = (name, x, y, z, Vx, Vy, Vz, 0, 0, 0, radius, mass)
     # Создание окна
     window = tk.Tk()
     window.title("Управление моделью")
-    window.geometry('600x400')
+    window.geometry('600x450')
     # Фрейм для настроек
     settings_frame = ttk.Frame(window, padding=10)
     settings_frame.grid(row=0, column=0, sticky="nsew")
@@ -125,7 +105,7 @@ def managment(q):
     end_date_entry.grid(row=5, column=1, sticky="w")
     ttk.Label(settings_frame, text="").grid(row=6, column=0, sticky="w")
     tk.Button(settings_frame, bg="green", fg = "white", text="Начать расчёт", command=starter).grid(row=7, column=0, sticky="w")
-    tk.Button(settings_frame, bg="red", fg = "white", text="Остановить расчёт").grid(row=7, column=1, sticky="w")
+    tk.Button(settings_frame, bg="red", fg = "white", text="Остановить расчёт", command=stopper).grid(row=7, column=1, sticky="w")
     ttk.Label(settings_frame, text="").grid(row=8, column=0, sticky="w")
     # Добавление нового объекта
     ttk.Label(settings_frame, text="Меню добавления объекта").grid(row=9, column=0, sticky="w")
@@ -153,27 +133,6 @@ def managment(q):
     Vz_entry = ttk.Entry(settings_frame, width=5)
     Vz_entry.grid(row=14, column=3, sticky="w")
     tk.Button(settings_frame, text="Добавить объект", command=add_body, bg='blue', fg='white').grid(row=15, column=0, columnspan=4, sticky="w")
+    tk.Button(settings_frame, text="Сохранить текущие данные в файл", command=add_body, bg='blue', fg='white').grid(row=16, column=0, columnspan=4, sticky="w")
     window.mainloop()
-# Пример запуска GUI
-def managment_initiator(q):
-    global now_date
-    global bodies
 
-    managment(q)
-
-    def update_gui():
-        global window
-        global now_date
-        global ifstart
-        # Проверяем очередь на наличие новых данных
-        while not q.empty():
-            command, data = q.get()
-            if command == "state":
-                ifstart = data
-            q.put(("update_file", file_name))
-            q.put(("update_speed", CalcSpeed))
-        # Обновляем интерфейс каждые 100 мс
-        window.after(100, update_gui)
-
-    # Запускаем обновление интерфейса
-    update_gui()

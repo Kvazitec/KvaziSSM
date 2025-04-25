@@ -2,25 +2,25 @@ from multiprocessing import Process, Queue
 from threading import Thread
 from datetime import datetime, timedelta
 import time
-#import pygame
 
 # Импорты из других файлов проекта
-from calculating_advanced import num_integr, Body, bodies  # Функция численного интегрирования
-from new_gui import managment_initiator  # Функция графического интерфейса
+from calculating_advanced import num_integr, Body, bodies, downloader  # Функция численного интегрирования
+from new_gui import managment, end_date  # Функция графического интерфейса
 ifstart = False
-#from visualization_module import visualization  # Функция визуализации
-
+from kvazissm_visual import visualization  # Функция визуализации
 # Глобальные переменные
+start_date = datetime.strptime("00:00:00/01/01/2000", "%H:%M:%S/%d/%m/%Y")
 now_date = "00:00:00/01/01/2000"  # Текущая дата
 current_date = datetime.strptime(now_date, "%H:%M:%S/%d/%m/%Y")  # Начальная дата
-end_date = ''
 calc_speed = 365 * 24 * 3600  # Скорость расчета (в секундах)
 step = 3600
 file = 'info.txt'
 q = Queue()  # Очередь для обмена данными
 qifs = Queue()
-qed = Queue()
-qed1 = Queue()
+qvis = Queue()
+qbod = Queue()
+qvis_date = Queue()
+qnewb = Queue()
 data = []
 # Функция для запуска численного интегрирования
 # Функция для запуска обновления даты
@@ -29,63 +29,53 @@ def run_num_integr():
     global current_date
     global calc_speed
     global end_date
+    global step
+    global ifstart
+    global file
     lasttime = time.time()
-    ifstart1 = False
-    while True:
-        if not qifs.empty():
-            command1, data1 = qifs.get()
-            if command1 == "update_ifstart":
-                ifstart1 = data1
-        #print(ifstart1, now_date != end_date, time.time() - lasttime > step / calc_speed)
-        if ifstart1 and now_date != end_date and time.time() - lasttime > step/calc_speed:
-            num_integr(step, q)  # Вызов функции интегрирования с шагом step
-            current_date += timedelta(seconds=step)
-            now_date = current_date.strftime("%H:%M:%S/%d/%m/%Y")
-            q.put(("update_date", now_date))  # Отправка новой даты в очередь
-            if not qed.empty():
-                command1, data1 = qed.get()
-                if command1 == "update_end_date":
-                    end_date = data1
-            if end_date:
-                if type(end_date) == str:
-                    end_date = datetime.strptime(end_date, "%H:%M:%S/%d/%m/%Y")
-                if current_date.timestamp() == end_date.timestamp():
-                    qed1.put(False)
-                    ifstart1 = False
-            print(current_date)
-            lasttime = time.time()
-# Основной блок для сборки проекта
-if __name__ == "__main__":
-    # Создание процессов
-    process_integ = Process(target=run_num_integr)  # Процесс для обновления даты
-    process_gui = Process(target=managment_initiator, args=(q,))  # Процесс для GUI
-    #process_visualization = Process(target=visualization, args=(q,))  # Процесс для визуализации
-
-    # Запуск процессов
-    process_gui.start()
-    #process_visualization.start()
-    process_integ.start()
-    # Основной цикл для обработки данных из очереди
+    lasttime2 = time.time()
     while True:
         if not q.empty():
             command, data = q.get()
             if command == "update_ifstart":
                 ifstart = data
-                qifs.put(("update_ifstart", ifstart))
+                if ifstart:
+                    current_date = start_date
+                    downloader()
             elif command == "update_date":
-                now_date = data  # Обновление текущей даты
+                now_date = data  # Обновление начальной даты
             elif command == "update_end_date":
-                end_date = data  # Обновление текущей даты
-                qed.put(("update_end_date", end_date))
-            elif command == "update_bodies":
-                bodies.clear()
-                for body_data in data:
-                    bodies.append(Body(*body_data))  # Обновление списка тел
+                end_date = datetime.strptime(data,   "%H:%M:%S/%d/%m/%Y")# Обновление конечной даты
             elif command == "update_speed":
                 calc_speed = data
             elif command == "update_file":
                 file = data
             elif command == "update_step":
                 step = data
-        if not qed1.empty():
-            ifstart = False
+        #print(ifstart, now_date != end_date, time.time() - lasttime > step / calc_speed)
+        if ifstart and current_date.timestamp() <= end_date.timestamp() and time.time() - lasttime > step/calc_speed:
+            num_integr(step, qbod, qnewb, ifstart)  # Вызов функции интегрирования с шагом step
+            current_date += timedelta(seconds=step)
+            now_date = current_date.strftime("%H:%M:%S/%d/%m/%Y")
+            qvis.put(("update_end_date", end_date))
+            qvis.put(("update_step", step))
+            qvis.put(("update_file", file))
+            if end_date:
+                if current_date.timestamp() >= end_date.timestamp():
+                    ifstart = False
+            lasttime = time.time()
+            if time.time() - lasttime2 > 0.02 or ifstart == False:
+                qvis_date.put(now_date)  # Отправка новой даты в очередь
+                lasttime2 = time.time()
+# Основной блок для сборки проекта
+if __name__ == "__main__":
+    # Создание процессов
+    process_integ = Process(target=run_num_integr)  # Процесс для обновления даты
+    process_gui = Process(target=managment, args=(q, qnewb))  # Процесс для GUI
+    process_visualization = Process(target=visualization, args=(qbod, qvis, qvis_date,))  # Процесс для визуализации
+
+    # Запуск процессов
+    process_gui.start()
+    process_visualization.start()
+    process_integ.start()
+    # Основной цикл для обработки данных из очереди
