@@ -9,11 +9,11 @@ from new_gui import managment, end_date  # Функция графическог
 ifstart = False
 from kvazissm_visual import visualization  # Функция визуализации
 # Глобальные переменные
-start_date = datetime.strptime("00:00:00/01/01/2000", "%H:%M:%S/%d/%m/%Y")
-now_date = "00:00:00/01/01/2000"  # Текущая дата
+start_date = datetime.strptime("00:00:00/12/04/2021", "%H:%M:%S/%d/%m/%Y")
+now_date = "00:00:00/12/04/2021"  # Текущая дата
 current_date = datetime.strptime(now_date, "%H:%M:%S/%d/%m/%Y")  # Начальная дата
 calc_speed = 365 * 24 * 3600  # Скорость расчета (в секундах)
-step = 3600
+step = 900#3600
 file = 'info.txt'
 q = Queue()  # Очередь для обмена данными
 qifs = Queue()
@@ -51,7 +51,7 @@ def run_num_integr():
             elif command == "update_file":
                 file = data
             elif command == "update_step":
-                step = data
+                step = 900#data
         #print(ifstart, now_date != end_date, time.time() - lasttime > step / calc_speed)
         if ifstart and current_date.timestamp() <= end_date.timestamp() and time.time() - lasttime > step/calc_speed:
             num_integr(step, qbod, qnewb, ifstart)  # Вызов функции интегрирования с шагом step

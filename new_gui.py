@@ -4,7 +4,7 @@ from tkinter import ttk
 CalcSyst = 'Гелиоцентрическая декартова'
 CalcSpeed = 365 * 24 * 3600
 file_name = 'info.txt'
-start_date = '00:00:00/01/01/2000'
+start_date = '00:00:00/12/04/2021'
 end_date = ''
 now_date = start_date
 setupdtime = 1

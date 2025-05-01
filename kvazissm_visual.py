@@ -9,14 +9,14 @@ import calculating_advanced
 
 
 def visualization(qbod, qvis, qvis_date):
-    now_date = "00:00:00/01/01/2000"  # Текущая дата
+    now_date = "00:00:00/12/04/2021"  # Текущая дата
 
     # Инициализация PyGame
     pygame.init()
 
     # Настройки экрана
     SCREEN_WIDTH = 1200
-    SCREEN_HEIGHT = 800
+    SCREEN_HEIGHT = 1300
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Визуализация модели")
     DISPLAY_TICK = 60
@@ -30,7 +30,7 @@ def visualization(qbod, qvis, qvis_date):
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     # Переменные отображения данных
-    now_date = "00:00:00/01/01/2000"  # Текущая дата
+    now_date = "00:00:00/12/04/2021"  # Текущая дата
     end_date = ""
     calc_speed = 365 * 24 * 3600
     step = 3600
@@ -150,6 +150,9 @@ def visualization(qbod, qvis, qvis_date):
             text_z_rect.topleft = (0, sch * text_z_rect.height)
             screen.blit(text_z, text_z_rect)
             sch += 2
+        #Тест
+        for h in bodies:
+            print(h.name, h.x, h.y, h.z, h.Vx, h.Vy, h.Vz, '\n', sep=' ')
         pygame.display.flip()  # Обновление экрана
         # Ограничение частоты обновления
         clock.tick(DISPLAY_TICK)
