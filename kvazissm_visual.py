@@ -89,19 +89,19 @@ def visualization(qbod, qvis, qvis_date):
                     body.radius *= SCALE * 15 * body.x / CAM_DISTANSE
                 else:
                     body.radius *= SCALE / 15
-        screen.fill(WHITE)  # Очистка экрана
+        screen.fill(BLACK)  # Очистка экрана
         # Отрисовка
         if vismode == 'xy':
             for body in img_bodies:
                 pygame.draw.circle(screen, RED, (body.x, body.y), body.radius)
-                text_surface = font_medium.render(body.name, True, BLACK)  # Создаем текстовый маркер
+                text_surface = font_medium.render(body.name, True, WHITE)  # Создаем текстовый маркер
                 text_rect = text_surface.get_rect()
                 text_rect.center = (body.x, body.y - body.radius - 10)
                 screen.blit(text_surface, text_rect)
         elif vismode == 'yz':
             for body in img_bodies:
                 pygame.draw.circle(screen, RED, (body.y, body.z), body.radius)
-                text_surface = font_medium.render(body.name, True, BLACK)  # Создаем текстовый маркер
+                text_surface = font_medium.render(body.name, True, WHITE)  # Создаем текстовый маркер
                 text_rect = text_surface.get_rect()
                 text_rect.center = (body.y, body.z - body.radius - 10)
                 screen.blit(text_surface, text_rect)
@@ -114,38 +114,38 @@ def visualization(qbod, qvis, qvis_date):
             bodies = calculating_advanced.bodies
         sch = 0
         for p in parameters:
-            text_date = font_small.render(p, True, BLACK)
+            text_date = font_small.render(p, True, WHITE)
             text_date_rect = text_date.get_rect()
             text_date_rect.topleft = (0, sch*text_date_rect.height)
             screen.blit(text_date, text_date_rect)
             sch += 2
         for bod in bodies:
-            text_name = font_small.render(f'Имя объекта: {bod.name}', True, WHITE, BLUE)
+            text_name = font_small.render(f'Имя объекта: {bod.name}', True, BLACK, BLUE)
             text_name_rect = text_name.get_rect()
             text_name_rect.topleft = (0, sch * text_name_rect.height)
             screen.blit(text_name, text_name_rect)
             sch += 1
-            text_mass = font_small.render(f'Масса: {bod.mass}', True, BLACK)
+            text_mass = font_small.render(f'Масса: {bod.mass}', True, WHITE)
             text_mass_rect = text_mass.get_rect()
             text_mass_rect.topleft = (0, sch * text_mass_rect.height)
             screen.blit(text_mass, text_mass_rect)
             sch += 1
-            text_rad = font_small.render(f'Радиус: {bod.radius}', True, BLACK)
+            text_rad = font_small.render(f'Радиус: {bod.radius}', True, WHITE)
             text_rad_rect = text_rad.get_rect()
             text_rad_rect.topleft = (0, sch * text_rad_rect.height)
             screen.blit(text_rad, text_rad_rect)
             sch += 2
-            text_x = font_small.render(f'x: {bod.x} Vx: {bod.Vx} ax: {bod.ax}', True, BLACK)
+            text_x = font_small.render(f'x: {bod.x} Vx: {bod.Vx} ax: {bod.ax}', True, WHITE)
             text_x_rect = text_x.get_rect()
             text_x_rect.topleft = (0, sch * text_x_rect.height)
             screen.blit(text_x, text_x_rect)
             sch += 1
-            text_y = font_small.render(f'y: {bod.y} Vy: {bod.Vy} ay: {bod.ay}', True, BLACK)
+            text_y = font_small.render(f'y: {bod.y} Vy: {bod.Vy} ay: {bod.ay}', True, WHITE)
             text_y_rect = text_y.get_rect()
             text_y_rect.topleft = (0, sch * text_y_rect.height)
             screen.blit(text_y, text_y_rect)
             sch += 3
-            text_z = font_small.render(f'z: {bod.z} Vz: {bod.Vz} az: {bod.az}', True, BLACK)
+            text_z = font_small.render(f'z: {bod.z} Vz: {bod.Vz} az: {bod.az}', True, WHITE)
             text_z_rect = text_z.get_rect()
             text_z_rect.topleft = (0, sch * text_z_rect.height)
             screen.blit(text_z, text_z_rect)
