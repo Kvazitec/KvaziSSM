@@ -2,6 +2,9 @@ General
 system_name = Солнечная система
 NUM_BODIES = 9
 GRAVITY_CONSTANT = 6.67430e-11
+STAR = Sun
+TIME = 00:00:00/12/04/2021
+
 Body_0
 name = Sun
 radius = 6.9634e8

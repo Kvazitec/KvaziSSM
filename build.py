@@ -1,11 +1,10 @@
 from multiprocessing import Process, Queue
-from threading import Thread
 from datetime import datetime, timedelta
 import time
 
 # Импорты из других файлов проекта
 from calculating_advanced import num_integr, Body, bodies, downloader  # Функция численного интегрирования
-from new_gui import managment, end_date  # Функция графического интерфейса
+from new_gui import managment  # Функция графического интерфейса
 ifstart = False
 from kvazissm_visual import visualization  # Функция визуализации
 # Глобальные переменные
@@ -28,10 +27,10 @@ def run_num_integr():
     global now_date
     global current_date
     global calc_speed
-    global end_date
     global step
     global ifstart
     global file
+    global data
     lasttime = time.time()
     lasttime2 = time.time()
     while True:

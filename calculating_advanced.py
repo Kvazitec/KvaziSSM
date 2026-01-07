@@ -69,7 +69,7 @@ def num_integr(dt, qbod, qnewb, ifstart1):
         body.Vz += body.az * dt
     bodies_data = [(body.name, body.x, body.y, body.z, body.Vx, body.Vy, body.Vz, body.ax, body.ay, body.az, body.radius,
                    body.mass) for body in bodies]
-    if not ifstart1 or time.time() - lasttime1 > 0.016:
+    if not ifstart1 or time.time() - lasttime1 > 0.03: #0.016:
         qbod.put(bodies_data)
         lasttime1 = time.time()
     #print(time.time()-lasttime1)

@@ -1,138 +1,253 @@
-import tkinter as tk
-from tkinter import ttk
-# Глобальные переменные
-CalcSyst = 'Гелиоцентрическая декартова'
-CalcSpeed = 365 * 24 * 3600
-file_name = 'info.txt'
-start_date = '00:00:00/12/04/2021'
-end_date = ''
-now_date = start_date
-setupdtime = 1
-bodies = []
-step = 3600
-ifstart = False
-mess = 1
-window = ''
+import sys
+from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
+                             QLabel, QLineEdit, QComboBox, QPushButton,
+                             QFormLayout, QGroupBox, QGridLayout, QMessageBox)
+from PyQt6.QtCore import Qt
+
+# Значения по умолчанию (как в оригинале)
+DEFAULT_CALC_SYST = 'Гелиоцентрическая декартова'
+DEFAULT_SPEED = str(365 * 24 * 3600)
+DEFAULT_STEP = '3600'
+DEFAULT_FILE = 'info.txt'
+DEFAULT_START_DATE = '00:00:00/12/04/2021'
+
+
+class ControlWindow(QWidget):
+    def __init__(self, q, qnewb):
+        super().__init__()
+        self.q = q
+        self.qnewb = qnewb
+        self.setWindowTitle("Управление моделью")
+        self.resize(600, 550)
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        # Основной вертикальный контейнер
+        main_layout = QVBoxLayout()
+        self.setLayout(main_layout)
+
+        # --- Группа настроек ---
+        settings_group = QGroupBox("Настройки симуляции")
+        settings_layout = QFormLayout()
+
+        # Система координат
+        self.coord_combo = QComboBox()
+        self.coord_combo.addItems(['Эклиптическая', 'Экваториальная',
+                                   'Гелиоцентрическая полярная', 'Гелиоцентрическая декартова'])
+        self.coord_combo.setCurrentText(DEFAULT_CALC_SYST)
+        settings_layout.addRow("Система координат:", self.coord_combo)
+
+        # Скорость расчёта
+        self.speed_entry = QLineEdit(DEFAULT_SPEED)
+        settings_layout.addRow("Скорость расчёта (сек):", self.speed_entry)
+
+        # Шаг интегрирования
+        self.step_entry = QLineEdit(DEFAULT_STEP)
+        settings_layout.addRow("Шаг интегрирования (сек):", self.step_entry)
+
+        # Файл данных
+        self.file_entry = QLineEdit(DEFAULT_FILE)
+        settings_layout.addRow("Файл данных:", self.file_entry)
+
+        # Даты
+        self.start_date_entry = QLineEdit(DEFAULT_START_DATE)
+        self.start_date_entry.setPlaceholderText("ЧЧ:MM:СС/ДД/ММ/ГГГГ")
+        settings_layout.addRow("Стартовая дата:", self.start_date_entry)
+
+        self.end_date_entry = QLineEdit()
+        self.end_date_entry.setPlaceholderText("ЧЧ:MM:СС/ДД/ММ/ГГГГ")
+        settings_layout.addRow("Дата окончания:", self.end_date_entry)
+
+        settings_group.setLayout(settings_layout)
+        main_layout.addWidget(settings_group)
+
+        # --- Кнопки управления расчётом ---
+        btn_layout = QHBoxLayout()
+
+        self.btn_start = QPushButton("Начать расчёт")
+        self.btn_start.setStyleSheet("background-color: green; color: white; font-weight: bold;")
+        self.btn_start.clicked.connect(self.starter)
+
+        self.btn_stop = QPushButton("Остановить расчёт")
+        self.btn_stop.setStyleSheet("background-color: red; color: white; font-weight: bold;")
+        self.btn_stop.clicked.connect(self.stopper)
+
+        btn_layout.addWidget(self.btn_start)
+        btn_layout.addWidget(self.btn_stop)
+        main_layout.addLayout(btn_layout)
+
+        # Лейбл для статуса
+        self.status_label = QLabel("Готов к работе")
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(self.status_label)
+
+        # --- Группа добавления объекта ---
+        obj_group = QGroupBox("Меню добавления объекта")
+        obj_layout = QVBoxLayout()
+
+        # Форма для основных параметров
+        obj_form = QFormLayout()
+        self.name_entry = QLineEdit()
+        obj_form.addRow("Имя объекта:", self.name_entry)
+
+        self.radius_entry = QLineEdit()
+        obj_form.addRow("Радиус объекта (м):", self.radius_entry)
+
+        self.mass_entry = QLineEdit()
+        obj_form.addRow("Масса объекта (кг):", self.mass_entry)
+        obj_layout.addLayout(obj_form)
+
+        # Сетка для координат и скоростей
+        grid_vals = QGridLayout()
+
+        grid_vals.addWidget(QLabel("Координаты (м):"), 0, 0)
+        self.x_entry = QLineEdit();
+        self.x_entry.setPlaceholderText("X")
+        self.y_entry = QLineEdit();
+        self.y_entry.setPlaceholderText("Y")
+        self.z_entry = QLineEdit();
+        self.z_entry.setPlaceholderText("Z")
+        grid_vals.addWidget(self.x_entry, 0, 1)
+        grid_vals.addWidget(self.y_entry, 0, 2)
+        grid_vals.addWidget(self.z_entry, 0, 3)
+
+        grid_vals.addWidget(QLabel("Скорости (м/с):"), 1, 0)
+        self.vx_entry = QLineEdit();
+        self.vx_entry.setPlaceholderText("Vx")
+        self.vy_entry = QLineEdit();
+        self.vy_entry.setPlaceholderText("Vy")
+        self.vz_entry = QLineEdit();
+        self.vz_entry.setPlaceholderText("Vz")
+        grid_vals.addWidget(self.vx_entry, 1, 1)
+        grid_vals.addWidget(self.vy_entry, 1, 2)
+        grid_vals.addWidget(self.vz_entry, 1, 3)
+
+        obj_layout.addLayout(grid_vals)
+
+        # Кнопки для объектов
+        self.btn_add_obj = QPushButton("Добавить объект")
+        self.btn_add_obj.setStyleSheet("background-color: blue; color: white;")
+        self.btn_add_obj.clicked.connect(self.add_body)
+
+        self.btn_save_data = QPushButton("Сохранить текущие данные в файл")
+        self.btn_save_data.setStyleSheet("background-color: blue; color: white;")
+        self.btn_save_data.clicked.connect(self.save_data)
+
+        obj_layout.addWidget(self.btn_add_obj)
+        obj_layout.addWidget(self.btn_save_data)
+
+        obj_group.setLayout(obj_layout)
+        main_layout.addWidget(obj_group)
+
+    def starter(self):
+        """Логика запуска расчёта"""
+        start_date = self.start_date_entry.text()
+        end_date = self.end_date_entry.text()
+
+        # Валидация
+        if not start_date:
+            self.status_label.setText("Ошибка: Введите стартовую дату")
+            self.status_label.setStyleSheet("color: red; font-weight: bold;")
+            return
+
+        if not end_date:
+            self.status_label.setText("Ошибка: Введите дату окончания")
+            self.status_label.setStyleSheet("color: red; font-weight: bold;")
+            return
+
+        # Отправка данных в очередь
+        self.q.put(("update_calcsyst", self.coord_combo.currentText()))
+
+        if self.speed_entry.text():
+            try:
+                self.q.put(("update_speed", float(self.speed_entry.text())))
+            except ValueError:
+                pass  # Или обработка ошибки числа
+
+        if self.step_entry.text():
+            try:
+                self.q.put(("update_step", float(self.step_entry.text())))
+            except ValueError:
+                pass
+
+        if self.file_entry.text():
+            self.q.put(("update_file", self.file_entry.text()))
+
+        self.q.put(("update_start_date", start_date))
+        self.q.put(("update_end_date", end_date))
+
+        # Успешный запуск
+        self.q.put(('update_ifstart', True))
+        self.status_label.setText("Расчёт запущен")
+        self.status_label.setStyleSheet("color: green; font-weight: bold;")
+
+    def stopper(self):
+        """Логика остановки"""
+        self.q.put(('update_ifstart', False))
+        self.status_label.setText("Расчёт остановлен")
+        self.status_label.setStyleSheet("color: red;")
+
+    def add_body(self):
+        """Добавление нового тела"""
+        try:
+            name = self.name_entry.text()
+            radius = float(self.radius_entry.text())
+            mass = float(self.mass_entry.text())
+            x = float(self.x_entry.text())
+            y = float(self.y_entry.text())
+            z = float(self.z_entry.text())
+            vx = float(self.vx_entry.text())
+            vy = float(self.vy_entry.text())
+            vz = float(self.vz_entry.text())
+
+            # Кортеж данных (структура из вашего примера)
+            new_body = (name, x, y, z, vx, vy, vz, 0, 0, 0, radius, mass)
+
+            # В оригинале new_body никуда не отправлялся, здесь отправляем в qnewb
+            self.qnewb.put(new_body)
+
+            self.status_label.setText(f"Объект '{name}' добавлен")
+            self.status_label.setStyleSheet("color: blue;")
+
+            # Очистка полей (опционально)
+            # self.name_entry.clear()
+
+        except ValueError:
+            self.status_label.setText("Ошибка: Проверьте числовые поля")
+            self.status_label.setStyleSheet("color: red;")
+
+    def save_data(self):
+        """Сохранение данных"""
+        # В оригинале эта кнопка вызывала add_body, что скорее всего было ошибкой.
+        # Здесь отправляем сигнал на сохранение, если это предусмотрено логикой симуляции.
+        self.q.put("save_current_data")
+        self.status_label.setText("Запрос на сохранение отправлен")
+        self.status_label.setStyleSheet("color: black;")
+
 
 def managment(q, qnewb):
-    global CalcSyst
-    global CalcSpeed
-    global file_name
-    global start_date
-    global end_date
-    global now_date
-    global bodies
-    global window
+    """Функция-обертка для запуска Qt приложения"""
+    # Создаем экземпляр приложения.
+    # sys.argv нужен для обработки аргументов командной строки Qt
+    app = QApplication(sys.argv)
 
-    def starter():
-        iferror = False
-        global ifstart
-        global mess
-        mess = 1
-        ttk.Label(settings_frame, text="Сообщения:").grid(row=17, column=0, sticky='W')
-        q.put(("update_calcsyst", coord_combo.get()))
-        if speed_entry.get():
-            q.put("update_speed", float(speed_entry.get()))
-        if step_entry.get():
-            q.put(("update_step", float(step_entry.get())))
-        if file_entry.get():
-            q.put(("update_file", file_entry.get()))
-        if start_date_entry.get():
-            q.put(("update_start_date", start_date_entry.get()))
-        else:
-            iferror = True
-            tk.Label(settings_frame, text='Введите стартовую дату        ', bg='red', fg='white').grid(row=17, column=mess, sticky='W')
-            mess += 1
-        if end_date_entry.get():
-            q.put(('update_end_date', end_date_entry.get()))
-        else:
-            iferror = True
-            tk.Label(settings_frame, text='Введите дату окончания', bg='red', fg='white').grid(row=17, column=mess, sticky='W')
-            mess += 1
-        if not iferror:
-            tk.Label(settings_frame, text='Запущена подготовка к расчёту', bg='green', fg='white').grid(row=17, column=mess, sticky='W')
-            mess += 1
-            tk.Label(settings_frame, text='                             ').grid(row=17, column=mess, sticky='W')
-            mess += 1
-            ifstart = True
-        q.put(('update_ifstart', ifstart))
-    def stopper():
-        q.put(('update_ifstart', False))
-    def add_body():
-        name = name_entry.get()
-        radius = float(radius_entry.get())
-        mass = float(mass_entry.get())
-        x = float(x_entry.get())
-        y = float(y_entry.get())
-        z = float(z_entry.get())
-        Vx = float(Vx_entry.get())
-        Vy = float(Vy_entry.get())
-        Vz = float(Vz_entry.get())
-        new_body = (name, x, y, z, Vx, Vy, Vz, 0, 0, 0, radius, mass)
-    # Создание окна
-    window = tk.Tk()
-    window.title("Управление моделью")
-    window.geometry('600x450')
-    # Фрейм для настроек
-    settings_frame = ttk.Frame(window, padding=10)
-    settings_frame.grid(row=0, column=0, sticky="nsew")
+    # Применяем стиль Fusion для одинакового вида на всех ОС
+    app.setStyle('Fusion')
 
-    # Настройка системы координат
-    ttk.Label(settings_frame, text="Система координат:").grid(row=0, column=0, sticky="w")
-    coord_combo = ttk.Combobox(settings_frame, values=['Эклиптическая', 'Экваториальная', 'Гелиоцентрическая полярная', 'Гелиоцентрическая декартова'])
-    coord_combo.grid(row=0, column=1, sticky="w")
-    coord_combo.set(CalcSyst)
+    window = ControlWindow(q, qnewb)
+    window.show()
 
-    ttk.Label(settings_frame, text="Файл данных:").grid(row=3, column=0, sticky="w")
-    file_entry = ttk.Entry(settings_frame, width=10)
-    file_entry.grid(row=3, column=1, sticky="w")
+    # Запускаем цикл событий.
+    # В Python 3.14+ и современных PyQt используется .exec() вместо .exec_()
+    sys.exit(app.exec())
 
-    # Настройка скорости расчёта
-    ttk.Label(settings_frame, text="Скорость расчёта (сек):").grid(row=1, column=0, sticky="w")
-    speed_entry = ttk.Entry(settings_frame, width=10)
-    speed_entry.grid(row=1, column=1, sticky="w")
-    # Шаг интегрирования
-    ttk.Label(settings_frame, text="Шаг интегрирования (сек):").grid(row=2, column=0, sticky="w")
-    step_entry = ttk.Entry(settings_frame, width=10)
-    step_entry.grid(row=2, column=1, sticky="w")
-    # Настройка даты
-    ttk.Label(settings_frame, text="Стартовая дата:").grid(row=4, column=0, sticky="w")
-    ttk.Label(settings_frame, text="ЧЧ:MM:СС/ДД/ММ/ГГГГ").grid(row=4, column=2, sticky="w")
-    start_date_entry = ttk.Entry(settings_frame, width=20)
-    start_date_entry.grid(row=4, column=1, sticky="w")
-    ttk.Label(settings_frame, text="Дата окончания:").grid(row=5, column=0, sticky="w")
-    end_date_entry = ttk.Entry(settings_frame, width=20)
-    end_date_entry.grid(row=5, column=1, sticky="w")
-    ttk.Label(settings_frame, text="").grid(row=6, column=0, sticky="w")
-    tk.Button(settings_frame, bg="green", fg = "white", text="Начать расчёт", command=starter).grid(row=7, column=0, sticky="w")
-    tk.Button(settings_frame, bg="red", fg = "white", text="Остановить расчёт", command=stopper).grid(row=7, column=1, sticky="w")
-    ttk.Label(settings_frame, text="").grid(row=8, column=0, sticky="w")
-    # Добавление нового объекта
-    ttk.Label(settings_frame, text="Меню добавления объекта").grid(row=9, column=0, sticky="w")
-    ttk.Label(settings_frame, text="Имя объекта:").grid(row=10, column=0, sticky="w")
-    name_entry = ttk.Entry(settings_frame, width=10)
-    name_entry.grid(row=10, column=1, sticky="w")
-    ttk.Label(settings_frame, text="Радиус объекта (м):").grid(row=11, column=0, sticky="w")
-    radius_entry = ttk.Entry(settings_frame, width=10)
-    radius_entry.grid(row=11, column=1, sticky="w")
-    ttk.Label(settings_frame, text="Масса объекта (кг):").grid(row=12, column=0, sticky="w")
-    mass_entry = ttk.Entry(settings_frame, width=10)
-    mass_entry.grid(row=12, column=1, sticky="w")
-    ttk.Label(settings_frame, text="Координаты (x, y, z ) (м):").grid(row=13, column=0, sticky="w")
-    x_entry = ttk.Entry(settings_frame, width=5)
-    x_entry.grid(row=13, column=1, sticky="w")
-    y_entry = ttk.Entry(settings_frame, width=5)
-    y_entry.grid(row=13, column=2, sticky="w")
-    z_entry = ttk.Entry(settings_frame, width=5)
-    z_entry.grid(row=13, column=3, sticky="w")
-    ttk.Label(settings_frame, text="Скорости (Vx, Vy, Vz) (м/c):").grid(row=14, column=0, sticky="w")
-    Vx_entry = ttk.Entry(settings_frame, width=5)
-    Vx_entry.grid(row=14, column=1, sticky="w")
-    Vy_entry = ttk.Entry(settings_frame, width=5)
-    Vy_entry.grid(row=14, column=2, sticky="w")
-    Vz_entry = ttk.Entry(settings_frame, width=5)
-    Vz_entry.grid(row=14, column=3, sticky="w")
-    tk.Button(settings_frame, text="Добавить объект", command=add_body, bg='blue', fg='white').grid(row=15, column=0, columnspan=4, sticky="w")
-    tk.Button(settings_frame, text="Сохранить текущие данные в файл", command=add_body, bg='blue', fg='white').grid(row=16, column=0, columnspan=4, sticky="w")
-    window.mainloop()
 
+# Для тестирования интерфейса отдельно от основной программы раскомментируйте строки ниже:
+"""if __name__ == "__main__":
+    from queue import Queue
+
+    # Заглушки очередей для теста
+    q_test = Queue()
+    qnewb_test = Queue()
+    managment(q_test, qnewb_test)"""
